@@ -9,7 +9,7 @@ import { ThemeProvider } from './components/theme/theme-provider';
 
 export function App() {
   return (
-    <ThemeProvider storageKey="pizzashop-theme" defaultTheme="dark">
+    <ThemeProvider storageKey="pizzashop-theme" defaultTheme="light">
       <HelmetProvider>
         <Helmet titleTemplate="%s | Pizza Shop" />
         <Toaster richColors position="top-right" />
