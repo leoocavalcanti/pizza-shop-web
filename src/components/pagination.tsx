@@ -1,20 +1,32 @@
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-react'
 
-import { Button } from './ui/button';
+import { Button } from './ui/button'
 
 interface PaginationProps {
-  pageIndex: number;
-  totalCount: number;
-  perPage: number;
-  onPageChange?: (pageIndex: number) => Promise<void> | void;
+  pageIndex: number
+  totalCount: number
+  perPage: number
+  onPageChange: (pageIndex: number) => Promise<void> | void
 }
 
-export function Pagination({ pageIndex, totalCount, perPage, onPageChange }: PaginationProps) {
-  const pages = Math.floor(totalCount / perPage) || 1;
+export function Pagination({
+  pageIndex,
+  totalCount,
+  perPage,
+  onPageChange,
+}: PaginationProps) {
+  const pages = Math.floor(totalCount / perPage) || 1
 
   return (
     <div className="flex items-center justify-between">
-      <span className="text-sm text-muted-foreground">Total de {totalCount} item(s)</span>
+      <span className="text-sm text-muted-foreground">
+        Total de {totalCount} item(s)
+      </span>
 
       <div className="flex items-center space-x-6 lg:space-x-8">
         <div className="flex w-[100px] items-center justify-center text-sm font-medium">
@@ -60,5 +72,5 @@ export function Pagination({ pageIndex, totalCount, perPage, onPageChange }: Pag
         </div>
       </div>
     </div>
-  );
+  )
 }

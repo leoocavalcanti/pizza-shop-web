@@ -1,74 +1,99 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Helmet } from 'react-helmet-async';
-import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
-import { toast } from 'sonner';
-import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
+import { useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
+import { twMerge } from 'tailwind-merge'
+import { z } from 'zod'
 
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
-import { INVALID_EMAIL, REQUIRED_FIELD } from '../../shared/zod/errors';
+import { signIn } from '@/api/sign-in'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
-const signInForm = z.object({
-  email: z
-    .string({
-      required_error: REQUIRED_FIELD,
-    })
-    .email(INVALID_EMAIL),
-});
+const signInSchema = z.object({
+  email: z.string().email(),
+})
 
-type SignInForm = z.infer<typeof signInForm>;
+type SignInSchema = z.infer<typeof signInSchema>
 
 export function SignIn() {
+  const [searchParams] = useSearchParams()
+
   const {
     register,
     handleSubmit,
-    formState: { isSubmitting, errors },
-  } = useForm<SignInForm>({
-    resolver: zodResolver(signInForm),
-  });
+    formState: { isSubmitting },
+  } = useForm<SignInSchema>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: searchParams.get('email') ?? '',
+    },
+  })
 
-  async function handleSignIn(data: SignInForm) {
-    console.log(data);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    toast.success('Enviamos um link de autenticação para seu email');
-    // toast.success('Enviamos um link de autenticação para seu email', {
-    //   action: {
-    //     label: 'Acessar',
-    //     onClick: () => handleSignIn(data),
-    //   },
-    // })
+  const { mutateAsync: authenticate } = useMutation({
+    mutationFn: signIn,
+  })
+
+  async function handleAuthenticate({ email }: SignInSchema) {
+    try {
+      await authenticate({ email })
+
+      toast.success('Enviamos um link de autenticação para seu e-mail.', {
+        action: {
+          label: 'Reenviar',
+          onClick: () => authenticate({ email }),
+        },
+      })
+    } catch (err) {
+      toast.error('Credenciais inválidas')
+    }
   }
 
   return (
-    <>
-      <Helmet title="Login" />
-      <div className="p-8">
-        <Button variant="ghost" asChild className="absolute right-8 top-8">
-          <Link to="/sign-up">Novo estabelecimento</Link>
-        </Button>
-        <div className="w-[350px] flex flex-col justify-center gap-6">
-          <div className="flex flex-col gap-2 text-center">
-            <h1 className="text-2xl font-semibold tracking-light">Acessar painel</h1>
-            <p className="text-sm text-muted-foreground">
-              Acompanhe suas vendas pelo painel do parceiro
-            </p>
-          </div>
+    <div className="lg:p-8">
+      <a
+        href="/sign-up"
+        className={twMerge(
+          buttonVariants({ variant: 'ghost' }),
+          'absolute right-4 top-4 md:right-8 md:top-8',
+        )}
+      >
+        Novo estabelecimento
+      </a>
 
-          <form onSubmit={handleSubmit(handleSignIn)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Seu e-mail</Label>
-              <Input id="email" type="email" {...register('email')} />
-              {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+        <div className="flex flex-col space-y-2 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Acessar painel
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Acompanhe suas vendas pelo painel do parceiro!
+          </p>
+        </div>
+
+        <div className="grid gap-6">
+          <form onSubmit={handleSubmit(handleAuthenticate)}>
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Seu e-mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  autoCorrect="off"
+                  {...register('email')}
+                />
+              </div>
+
+              <Button type="submit" disabled={isSubmitting}>
+                Acessar painel
+              </Button>
             </div>
-
-            <Button disabled={isSubmitting} className="w-full" type="submit">
-              Acessar
-            </Button>
           </form>
         </div>
       </div>
-    </>
-  );
+    </div>
+  )
 }
